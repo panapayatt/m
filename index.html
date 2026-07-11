@@ -370,7 +370,8 @@
 // ==========================================
 // 🛠 സെക്യൂരിറ്റി API ലിങ്ക് (MASTER ROUTING)
 // ==========================================
-const MASTER_API_URL = "https://script.google.com/macros/s/AKfycbxvCbYabALXb5e0gdha1yvG7poSGfPy-cne6p7X2RRpYFq1OhYAOnCPberG5koAQcP1/exec"; // 🛑 മാസ്റ്റർ Web App URL ഇവിടെ നൽകുക
+// 🛑 ഗൂഗിൾ ആപ്പ്സ് സ്ക്രിപ്റ്റ് ഡെപ്ലോയ് ചെയ്യുമ്പോൾ കിട്ടുന്ന യഥാർത്ഥ URL താഴെ നൽകുക:
+const MASTER_API_URL = "https://script.google.com/macros/s/AKfycbxvCbYabALXb5e0gdha1yvG7poSGfPy-cne6p7X2RRpYFq1OhYAOnCPberG5koAQcP1/exec"; 
 
 let sheetUrl = "";
 let ledger = []; 
@@ -967,7 +968,6 @@ function closeChangePasswordModal() { document.getElementById('changePasswordMod
 async function processChangePassword() {
   const newPass = document.getElementById('newPasswordInput').value.trim();
   if(!newPass) { alert('പുതിയ പാസ്‌വേഡ് നൽകുക!'); return; }
-  if(!sheetUrl) { alert('ഷീറ്റ് കണക്ട് ചെയ്തിട്ടില്ല.'); return; }
   const loggedUser = localStorage.getItem('payat_logged_user');
   if(!loggedUser) return;
 
@@ -976,7 +976,7 @@ async function processChangePassword() {
     const oldText = btn.textContent;
     btn.textContent = 'സേവ് ചെയ്യുന്നു...'; btn.disabled = true;
 
-    await fetch(sheetUrl, {
+    await fetch(MASTER_API_URL, {
       method: 'POST', headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({ action: 'changePassword', username: loggedUser, newPassword: newPass })
     });
@@ -993,14 +993,17 @@ async function attemptLogin(){
   const errEl = document.getElementById('loginError');
   errEl.textContent = '';
 
-  if(!sheetUrl){ errEl.textContent = 'ശരിയായ ആക്സസ് ലിങ്ക് (URL) ഉപയോഗിച്ച് മാത്രം തുറക്കുക!'; return; }
+  if(!MASTER_API_URL || MASTER_API_URL === "YOUR_MASTER_WEB_APP_URL_HERE"){ 
+    errEl.textContent = 'ഡെവലപ്പർ ശ്രദ്ധിക്കുക: കോഡിൽ MASTER_API_URL മാറ്റി നൽകുക!'; 
+    return; 
+  }
   if(!user || !pass){ errEl.textContent = 'Username, Password രണ്ടും നൽകുക.'; return; }
   
   const btn = document.getElementById('loginBtn');
   btn.disabled = true; btn.textContent = 'ചെക്ക് ചെയ്യുന്നു...';
   
   try{
-    const res = await fetch(sheetUrl + '?action=getUsers');
+    const res = await fetch(MASTER_API_URL + '?action=getUsers');
     const users = await res.json();
     const match = users.find(u => u.username===user && String(u.password)===pass);
     if(!match){
@@ -1035,7 +1038,7 @@ async function openAddUserModal(){
   const box = document.getElementById('adminUserList');
   box.innerHTML = '<div style="font-size:0.8rem;color:#9b8c6c;">Loading Users...</div>';
   try{
-    const res = await fetch(sheetUrl + '?action=getUsers');
+    const res = await fetch(MASTER_API_URL + '?action=getUsers');
     const users = await res.json();
     box.innerHTML = users.map(u => {
       const isAdm = (u.username.toLowerCase() === 'admin');
@@ -1066,7 +1069,7 @@ async function resetUserPass(targetUser) {
   btn.textContent = 'Updating...'; btn.disabled = true;
   
   try {
-    await fetch(sheetUrl, {
+    await fetch(MASTER_API_URL, {
       method:'POST', headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({action:'adminResetPassword', targetUser: targetUser, newPassword: finalPass})
     });
@@ -1084,14 +1087,13 @@ async function saveNewUser(){
   const password = document.getElementById('newUserPass').value.trim() || Math.floor(1000 + Math.random() * 9000).toString();
   
   if(!username){ alert('Username നൽകുക.'); return; }
-  if(!sheetUrl) return;
   
   const btn = document.querySelector('#addUserModalOverlay .btn-primary');
   const oldText = btn.textContent;
   btn.textContent = 'ചേർക്കുന്നു...'; btn.disabled = true;
   
   try{
-    await fetch(sheetUrl + '?action=addUser', {
+    await fetch(MASTER_API_URL + '?action=addUser', {
       method:'POST', headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({action:'addUser', username: username, password: password})
     });
