@@ -172,7 +172,8 @@
         <button class="menu-btn" onclick="toggleMenu()">⋮</button>
         <div id="mainMenu" class="menu-content">
           <button class="menu-item" onclick="openImportModal(); toggleMenu();">📊 Excel Import</button>
-          <button class="menu-item" onclick="exportToExcel(); toggleMenu();">📤 Share to Excel</button>
+          <button class="menu-item" onclick="exportToExcel(); toggleMenu();">📤 Export to Excel</button>
+          <button class="menu-item" onclick="openChangeUsernameModal(); toggleMenu();">🏷️ Username മാറ്റുക</button>
           <button class="menu-item" onclick="openChangePasswordModal(); toggleMenu();">🔑 Password മാറ്റുക</button>
           <button class="menu-item" onclick="openThemeModal(); toggleMenu();">🎨 തീം (Theme)</button>
           <button class="menu-item" id="adminMenuAddUser" style="display:none;" onclick="openAddUserModal(); toggleMenu();">👤 Users (Admin)</button>
@@ -220,7 +221,21 @@
       <button class="btn" style="background:#424242; color:#fff;" onclick="setTheme('black')">Black</button>
     </div>
     <div class="modal-actions" style="margin-top:20px;">
-      <button class="btn btn-ghost" style="width:100%" onclick="closeThemeModal()">അടയ്ക്കുക</button>
+      <button class="btn btn-ghost" style="width:100%" onclick="closeThemeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="changeUsernameModalOverlay">
+  <div class="modal">
+    <h2>Username മാറ്റുക</h2>
+    <div class="field">
+      <label>പുതിയ Username നൽകുക</label>
+      <input type="text" id="newUsernameInput" placeholder="New Username (ചെറിയ അക്ഷരം)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeChangeUsernameModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="processChangeUsername()">സേവ് ചെയ്യുക</button>
     </div>
   </div>
 </div>
@@ -233,7 +248,7 @@
       <input type="text" id="newPasswordInput" placeholder="New Password">
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeChangePasswordModal()">റദ്ദാക്കുക</button>
+      <button class="btn btn-ghost" onclick="closeChangePasswordModal()">Cancel</button>
       <button class="btn btn-primary" onclick="processChangePassword()">സേവ് ചെയ്യുക</button>
     </div>
   </div>
@@ -243,20 +258,20 @@
   <div class="modal">
     <h2>All Users Management</h2>
     <div class="field">
-      <label>Username</label>
-      <input type="text" id="newUserName" placeholder="പുതിയ യൂസറുടെ പേര്">
+      <label>പുതിയ ആളുടെ പേര്</label>
+      <input type="text" id="newUserName" placeholder="പുതിയ യൂസറുടെ പേര് (ഉദാ: abdul)">
     </div>
     <div class="field">
       <label>Password</label>
       <input type="text" id="newUserPass" placeholder="പാസ്‌വേഡ് (ഓപ്ഷണൽ)">
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeAddUserModal()">റദ്ദാക്കുക</button>
+      <button class="btn btn-ghost" onclick="closeAddUserModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveNewUser()">പുതിയ യൂസറെ ചേർക്കുക</button>
     </div>
     <div id="userMgmtSection" style="margin-top:24px;border-top:2px dashed var(--line);padding-top:16px;">
-      <h2 style="font-size:1rem; margin-bottom:8px;">നിലവിലുള്ള യൂസർമാരും പാസ്‌വേഡും</h2>
-      <div id="adminUserList" style="max-height:180px; overflow-y:auto; border:1px solid #eee; padding:5px; border-radius:5px; background:#fff;"></div>
+      <h2 style="font-size:1rem; margin-bottom:8px;">നിലവിലുള്ള യൂസർമാരും വിവരങ്ങളും</h2>
+      <div id="adminUserList" style="max-height:220px; overflow-y:auto; border:1px solid #eee; padding:5px; border-radius:5px; background:#fff;"></div>
     </div>
   </div>
 </div>
@@ -306,7 +321,7 @@
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closePersonModal()">റദ്ദാക്കുക</button>
+      <button class="btn btn-ghost" onclick="closePersonModal()">Cancel</button>
       <button class="btn btn-primary" onclick="savePerson()">സേവ് ചെയ്യുക</button>
     </div>
   </div>
@@ -343,7 +358,7 @@
       <textarea id="txNote" rows="2" placeholder="എന്തെങ്കിലും വിവരം"></textarea>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeTxModal()">റദ്ദാക്കുക</button>
+      <button class="btn btn-ghost" onclick="closeTxModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveTx()">സേവ് ചെയ്യുക</button>
     </div>
   </div>
@@ -360,7 +375,7 @@
       <textarea id="excelPasteArea" rows="8" placeholder="Excel ഡാറ്റ ഇവിടെ പേസ്റ്റ് ചെയ്യുക..."></textarea>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeImportModal()">റദ്ദാക്കുക</button>
+      <button class="btn btn-ghost" onclick="closeImportModal()">Cancel</button>
       <button class="btn btn-primary" onclick="processExcelImport()">സേവ് ചെയ്യുക</button>
     </div>
   </div>
@@ -370,7 +385,7 @@
 // ==========================================
 // 🛠 സെക്യൂരിറ്റി API ലിങ്ക് (MASTER ROUTING)
 // ==========================================
-// 🛑 ഗൂഗിൾ ആപ്പ്സ് സ്ക്രിപ്റ്റ് ഡെപ്ലോയ് ചെയ്യുമ്പോൾ കിട്ടുന്ന യഥാർത്ഥ URL താഴെ നൽകുക:
+// 🛑 മാസ്റ്റർ Web App URL താഴെ നൽകുക:
 const MASTER_API_URL = "https://script.google.com/macros/s/AKfycbxvCbYabALXb5e0gdha1yvG7poSGfPy-cne6p7X2RRpYFq1OhYAOnCPberG5koAQcP1/exec"; 
 
 let sheetUrl = "";
@@ -381,7 +396,7 @@ function uid(){return 't'+Date.now()+Math.floor(Math.random()*1000);}
 function fmt(n){return '₹' + (Math.round((n||0)*100)/100).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2});}
 function todayStr(){return new Date().toISOString().slice(0,10);}
 
-// 🌟 മലയാളം ഡേറ്റ് ഫോർമാറ്റ്
+// മലയാളം ഡേറ്റ് ഫോർമാറ്റ്
 function fmtDate(d){
   if(!d) return '-';
   const dt = new Date(d);
@@ -395,8 +410,25 @@ function fmtDate(d){
   return `${dd}/${mm}/${yyyy} ${days[dt.getDay()]}`;
 }
 
+// Modal functions
 function openThemeModal() { document.getElementById('themeModalOverlay').classList.add('open'); }
 function closeThemeModal() { document.getElementById('themeModalOverlay').classList.remove('open'); }
+
+function openChangeUsernameModal() {
+  document.getElementById('newUsernameInput').value = '';
+  document.getElementById('changeUsernameModalOverlay').classList.add('open');
+}
+function closeChangeUsernameModal() { document.getElementById('changeUsernameModalOverlay').classList.remove('open'); }
+
+function openChangePasswordModal() {
+  document.getElementById('newPasswordInput').value = '';
+  document.getElementById('changePasswordModalOverlay').classList.add('open');
+}
+function closeChangePasswordModal() { document.getElementById('changePasswordModalOverlay').classList.remove('open'); }
+function closeAddUserModal() { document.getElementById('addUserModalOverlay').classList.remove('open'); }
+function closePersonModal(){ document.getElementById('personModalOverlay').classList.remove('open'); }
+function closeTxModal(){ document.getElementById('txModalOverlay').classList.remove('open'); }
+
 function setTheme(theme) {
   document.body.className = theme === 'default' ? '' : 'theme-' + theme;
   localStorage.setItem('payat_theme', theme);
@@ -545,7 +577,6 @@ function openPersonEditOnly(personId){
   document.getElementById('pPhone').value = p.phone || '';
   document.getElementById('personModalOverlay').classList.add('open');
 }
-function closePersonModal(){ document.getElementById('personModalOverlay').classList.remove('open'); }
 
 function savePerson(){
   const editId = document.getElementById('editPersonId').value;
@@ -573,19 +604,11 @@ function savePerson(){
   const expected = (expectedRaw && expectedRaw>0) ? expectedRaw : amount;
 
   const person = {
-    id: uid(),
-    customId,
-    name,
-    phone: document.getElementById('pPhone').value.trim(),
-    _open: true,
+    id: uid(), customId, name, phone: document.getElementById('pPhone').value.trim(), _open: true,
     transactions: [{
-      id: uid(),
-      date: document.getElementById('pDate').value || todayStr(),
-      place: document.getElementById('pPlace').value.trim(),
-      type: 'out',
-      amount,
-      expected,
-      note: document.getElementById('pNote').value.trim()
+      id: uid(), date: document.getElementById('pDate').value || todayStr(),
+      place: document.getElementById('pPlace').value.trim(), type: 'out',
+      amount, expected, note: document.getElementById('pNote').value.trim()
     }]
   };
   ledger.unshift(person);
@@ -624,7 +647,6 @@ function openTxModalForEdit(personId, txId){
   document.getElementById('txModalTitle').textContent = 'ഇടപാട് എഡിറ്റ് ചെയ്യുക';
   document.getElementById('txModalOverlay').classList.add('open');
 }
-function closeTxModal(){ document.getElementById('txModalOverlay').classList.remove('open'); }
 
 function saveTx(){
   const personId = document.getElementById('txPersonId').value;
@@ -639,10 +661,7 @@ function saveTx(){
   const data = {
     date: document.getElementById('txDate').value || todayStr(),
     place: document.getElementById('txPlace').value.trim(),
-    type,
-    amount,
-    expected,
-    note: document.getElementById('txNote').value.trim()
+    type, amount, expected, note: document.getElementById('txNote').value.trim()
   };
 
   if(txId){
@@ -670,7 +689,100 @@ function deletePerson(personId){
   queueSync();
 }
 
-// PDF & EXCEL
+// ==========================================
+// 📊 EXCEL IMPORT/EXPORT
+// ==========================================
+function openImportModal() {
+  document.getElementById('excelPasteArea').value = '';
+  document.getElementById('importModalOverlay').classList.add('open');
+}
+function closeImportModal() { document.getElementById('importModalOverlay').classList.remove('open'); }
+
+function processExcelImport() {
+  const text = document.getElementById('excelPasteArea').value.trim();
+  if(!text) { alert('ഡാറ്റ നൽകുക!'); return; }
+  const lines = text.split('\n');
+  let addedCount = 0;
+  
+  lines.forEach(line => {
+    const cols = line.split('\t'); 
+    if(cols.length >= 2) { 
+      const customId = cols[0] ? cols[0].trim() : '';
+      const name = cols[1] ? cols[1].trim() : '';
+      if(!name) return;
+      const phone = cols[2] ? cols[2].trim() : '';
+      const rawDate = cols[3] ? cols[3].trim() : '';
+      let txDate = todayStr();
+      if(rawDate && rawDate.match(/^\d{4}-\d{2}-\d{2}$/)) { txDate = rawDate; }
+      
+      const place = cols[4] ? cols[4].trim() : '';
+      const amountStr = cols[5] ? cols[5].replace(/[^\d.]/g, '') : '0';
+      const expectedStr = cols[6] ? cols[6].replace(/[^\d.]/g, '') : amountStr;
+      const note = cols[7] ? cols[7].trim() : '';
+
+      const amount = parseFloat(amountStr) || 0;
+      const expected = parseFloat(expectedStr) || amount;
+
+      if(amount > 0) {
+        const tx = { id: uid(), date: txDate, place: place, type: 'out', amount: amount, expected: expected, note: note };
+        let person = ledger.find(p => p.name === name || (customId && p.customId === customId));
+        if(person) { person.transactions.push(tx); } 
+        else { ledger.unshift({ id: uid(), customId: customId, name: name, phone: phone, _open: false, transactions: [tx] }); }
+        addedCount++;
+      }
+    }
+  });
+  
+  closeImportModal();
+  renderAll();
+  queueSync();
+  alert(`${addedCount} ഇടപാടുകൾ വിജയകരമായി ചേർത്തു!`);
+}
+
+function exportToExcel() {
+  if(ledger.length === 0) { alert('ഡാറ്റ ഒന്നും ഇല്ല.'); return; }
+  let csvContent = '\uFEFF'; 
+  csvContent += "ID,പേര്,ഫോൺ,തിയ്യതി,സ്ഥലം,തരം,തുക,കിട്ടാനുള്ളത്,കുറിപ്പ്,ബാക്കി (Net)\n";
+  const escapeCSV = (str) => {
+    if (str === null || str === undefined) return '""';
+    return '"' + String(str).replace(/"/g, '""') + '"';
+  };
+
+  ledger.forEach(p => {
+    const t = personTotals(p);
+    const netDue = Math.abs(t.due);
+    const dueStatus = t.due > 0 ? `കിട്ടാൻ ബാക്കി: ${netDue}` : (t.due < 0 ? `കൊടുക്കുവാൻ (Credit): ${netDue}` : 'തീർന്നു');
+
+    if(p.transactions.length === 0) {
+      csvContent += [escapeCSV(p.customId), escapeCSV(p.name), escapeCSV(p.phone), '""', '""', '""', '""', '""', '""', escapeCSV(dueStatus)].join(',') + '\n';
+    } else {
+      const sortedTx = p.transactions.slice().sort((a,b)=>a.date.localeCompare(b.date));
+      sortedTx.forEach((tx, idx) => {
+        const typeLabel = tx.type === 'out' ? 'കിട്ടുവാൻ (Debit)' : 'കൊടുക്കാൻ (Credit)';
+        const expectedVal = tx.type === 'out' ? (tx.expected || tx.amount) : '';
+        const netStatus = idx === 0 ? dueStatus : ''; 
+
+        csvContent += [
+          escapeCSV(p.customId), escapeCSV(p.name), escapeCSV(p.phone), escapeCSV(fmtDate(tx.date)),
+          escapeCSV(tx.place), escapeCSV(typeLabel), escapeCSV(tx.amount), escapeCSV(expectedVal),
+          escapeCSV(tx.note), escapeCSV(netStatus)
+        ].join(',') + '\n';
+      });
+    }
+  });
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "payat_ledger_" + todayStr() + ".csv";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// ==========================================
+// 📄 PDF EXPORT
+// ==========================================
 function buildPersonHtmlBlock(p){
   const t = personTotals(p);
   const themeColor = getThemeColor();
@@ -748,6 +860,14 @@ async function renderHtmlToPdf(innerHtml, filename, title){
   } finally {
     document.body.removeChild(container);
   }
+}
+
+async function exportPersonPdf(personId){
+  const p = ledger.find(x=>x.id===personId);
+  if(!p) return;
+  const html = buildPersonHtmlBlock(p);
+  const safeName = p.name.replace(/[^a-zA-Z0-9]/g,'_');
+  await renderHtmlToPdf(html, 'payat-' + safeName + '-' + todayStr() + '.pdf', p.name + ' - പയറ്റ് കണക്ക്');
 }
 
 async function exportAllPdf(){
@@ -877,47 +997,6 @@ async function exportAllPdf(){
   }, 100);
 }
 
-function exportToExcel() {
-  if(ledger.length === 0) { alert('ഡാറ്റ ഒന്നും ഇല്ല.'); return; }
-  let csvContent = '\uFEFF'; 
-  csvContent += "ID,പേര്,ഫോൺ,തിയ്യതി,സ്ഥലം,തരം,തുക,കിട്ടാനുള്ളത്,കുറിപ്പ്,ബാക്കി (Net)\n";
-  const escapeCSV = (str) => {
-    if (str === null || str === undefined) return '""';
-    return '"' + String(str).replace(/"/g, '""') + '"';
-  };
-
-  ledger.forEach(p => {
-    const t = personTotals(p);
-    const netDue = Math.abs(t.due);
-    const dueStatus = t.due > 0 ? `കിട്ടാൻ ബാക്കി: ${netDue}` : (t.due < 0 ? `കൊടുക്കുവാൻ (Credit): ${netDue}` : 'തീർന്നു');
-
-    if(p.transactions.length === 0) {
-      csvContent += [escapeCSV(p.customId), escapeCSV(p.name), escapeCSV(p.phone), '""', '""', '""', '""', '""', '""', escapeCSV(dueStatus)].join(',') + '\n';
-    } else {
-      const sortedTx = p.transactions.slice().sort((a,b)=>a.date.localeCompare(b.date));
-      sortedTx.forEach((tx, idx) => {
-        const typeLabel = tx.type === 'out' ? 'കിട്ടുവാൻ (Debit)' : 'കൊടുക്കാൻ (Credit)';
-        const expectedVal = tx.type === 'out' ? (tx.expected || tx.amount) : '';
-        const netStatus = idx === 0 ? dueStatus : ''; 
-
-        csvContent += [
-          escapeCSV(p.customId), escapeCSV(p.name), escapeCSV(p.phone), escapeCSV(fmtDate(tx.date)),
-          escapeCSV(tx.place), escapeCSV(typeLabel), escapeCSV(tx.amount), escapeCSV(expectedVal),
-          escapeCSV(tx.note), escapeCSV(netStatus)
-        ].join(',') + '\n';
-      });
-    }
-  });
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "payat_ledger_" + todayStr() + ".csv";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
 // ================== GOOGLE SHEETS SYNC ==================
 function queueSync(){
   if(!sheetUrl){
@@ -959,11 +1038,32 @@ async function loadFromSheetOnStart(preserveOpenState){
 }
 
 // ================== PASSWORD & USER MGMT ==================
-function openChangePasswordModal() {
-  document.getElementById('newPasswordInput').value = '';
-  document.getElementById('changePasswordModalOverlay').classList.add('open');
+async function processChangeUsername() {
+  const newUsername = document.getElementById('newUsernameInput').value.trim();
+  if(!newUsername) { alert('പുതിയ Username നൽകുക!'); return; }
+  const loggedUser = localStorage.getItem('payat_logged_user');
+  if(!loggedUser) return;
+
+  const btn = document.querySelector('#changeUsernameModalOverlay .btn-primary');
+  const oldText = btn.textContent;
+  btn.textContent = 'സേവ് ചെയ്യുന്നു...'; btn.disabled = true;
+
+  try {
+    const res = await fetch(MASTER_API_URL, {
+      method: 'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ action: 'changeUsername', oldUsername: loggedUser, newUsername: newUsername })
+    });
+    const data = await res.json();
+    if(data.error) {
+      alert(data.error);
+    } else {
+      alert('Username വിജയകരമായി മാറ്റിയിട്ടുണ്ട്! പുതിയ Username ഉപയോഗിച്ച് ലോഗിൻ ചെയ്യുക.');
+      localStorage.setItem('payat_logged_user', newUsername); 
+      closeChangeUsernameModal();
+    }
+  } catch(e) { alert('എന്തോ പ്രശ്നമുണ്ട്. വീണ്ടും ശ്രമിക്കുക.'); }
+  finally { btn.textContent = oldText; btn.disabled = false; }
 }
-function closeChangePasswordModal() { document.getElementById('changePasswordModalOverlay').classList.remove('open'); }
 
 async function processChangePassword() {
   const newPass = document.getElementById('newPasswordInput').value.trim();
@@ -971,20 +1071,19 @@ async function processChangePassword() {
   const loggedUser = localStorage.getItem('payat_logged_user');
   if(!loggedUser) return;
 
-  try {
-    const btn = document.querySelector('#changePasswordModalOverlay .btn-primary');
-    const oldText = btn.textContent;
-    btn.textContent = 'സേവ് ചെയ്യുന്നു...'; btn.disabled = true;
+  const btn = document.querySelector('#changePasswordModalOverlay .btn-primary');
+  const oldText = btn.textContent;
+  btn.textContent = 'സേവ് ചെയ്യുന്നു...'; btn.disabled = true;
 
+  try {
     await fetch(MASTER_API_URL, {
       method: 'POST', headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({ action: 'changePassword', username: loggedUser, newPassword: newPass })
     });
-    
     alert('പാസ്‌വേഡ് വിജയകരമായി മാറ്റിയിട്ടുണ്ട്!');
     closeChangePasswordModal();
-    btn.textContent = oldText; btn.disabled = false;
   } catch(e) { alert('എന്തോ പ്രശ്നമുണ്ട്. വീണ്ടും ശ്രമിക്കുക.'); }
+  finally { btn.textContent = oldText; btn.disabled = false; }
 }
 
 async function attemptLogin(){
@@ -994,8 +1093,7 @@ async function attemptLogin(){
   errEl.textContent = '';
 
   if(!MASTER_API_URL || MASTER_API_URL === "YOUR_MASTER_WEB_APP_URL_HERE"){ 
-    errEl.textContent = 'ഡെവലപ്പർ ശ്രദ്ധിക്കുക: കോഡിൽ MASTER_API_URL മാറ്റി നൽകുക!'; 
-    return; 
+    errEl.textContent = 'ഡെവലപ്പർ ശ്രദ്ധിക്കുക: കോഡിൽ MASTER_API_URL മാറ്റി നൽകുക!'; return; 
   }
   if(!user || !pass){ errEl.textContent = 'Username, Password രണ്ടും നൽകുക.'; return; }
   
@@ -1005,12 +1103,12 @@ async function attemptLogin(){
   try{
     const res = await fetch(MASTER_API_URL + '?action=getUsers');
     const users = await res.json();
-    const match = users.find(u => u.username===user && String(u.password)===pass);
+    const match = users.find(u => String(u.username).toLowerCase()===user.toLowerCase() && String(u.password)===pass);
     if(!match){
       errEl.textContent = 'Username അല്ലെങ്കിൽ Password തെറ്റാണ്.';
       btn.disabled = false; btn.textContent = 'ലോഗിൻ'; return;
     }
-    localStorage.setItem('payat_logged_user', user);
+    localStorage.setItem('payat_logged_user', match.username);
     showApp();
   }catch(err){
     errEl.textContent = 'Connect ചെയ്യാൻ പറ്റിയില്ല. Internet ശരിയാണോ എന്ന് നോക്കുക.';
@@ -1043,12 +1141,13 @@ async function openAddUserModal(){
     box.innerHTML = users.map(u => {
       const isAdm = (u.username.toLowerCase() === 'admin');
       const passDisplay = isAdm ? '****' : u.password; 
-      const resetBtn = isAdm ? '' : `<button class="btn btn-ghost btn-sm" style="padding:5px 10px;font-size:0.75rem;" onclick="resetUserPass('${u.username}')">Reset</button>`;
+      const resetBtn = isAdm ? '' : `<button class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:0.7rem;" onclick="resetUserPass('${u.username}')">Reset Pass</button>`;
       
-      return `<div style="font-family:'Courier Prime',monospace;font-size:0.82rem;padding:8px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
+      return `<div style="font-family:'Courier Prime',monospace;font-size:0.8rem;padding:8px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-weight:bold;color:var(--maroon-deep);">👤 ${u.username}</div>
-          <div style="color:#7a6c4f;font-size:0.75rem;margin-top:2px;">Pass: <b style="color:var(--ink);">${passDisplay}</b></div>
+          <div style="color:#2f5d3a;font-size:0.7rem;">🔗 Link: <b>?id=${u.url_id}</b></div>
+          <div style="font-weight:bold;color:var(--maroon-deep);margin-top:2px;">👤 User: ${u.username}</div>
+          <div style="color:#7a6c4f;font-size:0.75rem;margin-top:2px;">🔑 Pass: <b style="color:var(--ink);">${passDisplay}</b></div>
         </div>
         <div>${resetBtn}</div>
       </div>`;
