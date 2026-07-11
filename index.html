@@ -40,7 +40,7 @@
   .login-sub{ font-family:'Courier Prime',monospace; font-size:0.75rem; color:#7a6c4f; margin:0 0 20px; letter-spacing:1px; }
   .login-box .field{text-align:left;}
   .login-error{ color:var(--maroon); font-size:0.82rem; min-height:18px; margin-bottom:6px; font-weight: 500; }
-  .login-footer{ margin-top:24px; font-size:0.72rem; color:#9b8c6c; font-family:'Courier Prime',monospace; }
+  .login-footer{ margin-top:24px; font-size:0.72rem; color:#9b8c6c; font-family:'Courier Prime',monospace; cursor:pointer; user-select:none; }
 
   *{box-sizing:border-box;}
   body{ margin:0; background: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(122,31,31,0.08) 28px), var(--paper); font-family:'Noto Sans Malayalam','Tiro Malayalam',serif; color:var(--ink); min-height:100vh; padding-bottom:40px; }
@@ -157,7 +157,7 @@
     </div>
     <div id="loginError" class="login-error"></div>
     <button id="loginBtn" class="btn btn-primary" style="width:100%;margin-top:6px;" onclick="attemptLogin()">ലോഗിൻ</button>
-    <div class="login-footer">© 2026 Designed &amp; Developed by M.A.Muneer.</div>
+    <div class="login-footer" onclick="handleFooterTap()">© 2026 Monark IT Solutions. All rights reserved.</div>
   </div>
 </div>
 
@@ -208,6 +208,20 @@
   </div>
 
   <main id="mainList"></main>
+</div>
+
+<div class="modal-overlay" id="secretAdminSettingsModal">
+  <div class="modal">
+    <h2>⚙️ Secret Admin Settings</h2>
+    <div class="field">
+      <label>Master Web App URL</label>
+      <input type="text" id="secretApiUrlInput" placeholder="Enter Web App URL here...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeSecretAdminSettings()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSecretAdminSettings()">Save URL</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="themeModalOverlay">
@@ -385,12 +399,41 @@
 // ==========================================
 // 🛠 സെക്യൂരിറ്റി API ലിങ്ക് (MASTER ROUTING)
 // ==========================================
-// 🛑 മാസ്റ്റർ Web App URL താഴെ നൽകുക:
-const MASTER_API_URL = "https://script.google.com/macros/s/AKfycbxvCbYabALXb5e0gdha1yvG7poSGfPy-cne6p7X2RRpYFq1OhYAOnCPberG5koAQcP1/exec"; 
+// 🛑 ഗൂഗിൾ ആപ്പ്സ് സ്ക്രിപ്റ്റ് ഡെപ്ലോയ് ചെയ്യുമ്പോൾ കിട്ടുന്ന യഥാർത്ഥ URL താഴെ നൽകുക:
+let DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbxvCbYabALXb5e0gdha1yvG7poSGfPy-cne6p7X2RRpYFq1OhYAOnCPberG5koAQcP1/exec"; 
+let MASTER_API_URL = localStorage.getItem('payat_master_api') || DEFAULT_API_URL;
 
 let sheetUrl = "";
 let ledger = []; 
 let syncTimer = null;
+let tapCount = 0;
+let tapTimer = null;
+
+// 🌟 5-Tap Secret Settings Logic
+function handleFooterTap() {
+  tapCount++;
+  if(tapTimer) clearTimeout(tapTimer);
+  tapTimer = setTimeout(() => { tapCount = 0; }, 1500);
+  if(tapCount >= 5) {
+    tapCount = 0;
+    openSecretAdminSettings();
+  }
+}
+function openSecretAdminSettings() {
+  document.getElementById('secretApiUrlInput').value = MASTER_API_URL;
+  document.getElementById('secretAdminSettingsModal').classList.add('open');
+}
+function closeSecretAdminSettings() {
+  document.getElementById('secretAdminSettingsModal').classList.remove('open');
+}
+function saveSecretAdminSettings() {
+  const url = document.getElementById('secretApiUrlInput').value.trim();
+  if(url) {
+    localStorage.setItem('payat_master_api', url);
+    alert('Master API URL Saved Successfully! The app will now reload.');
+    location.reload();
+  }
+}
 
 function uid(){return 't'+Date.now()+Math.floor(Math.random()*1000);}
 function fmt(n){return '₹' + (Math.round((n||0)*100)/100).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2});}
